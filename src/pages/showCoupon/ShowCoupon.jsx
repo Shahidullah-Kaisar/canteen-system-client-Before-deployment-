@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Link, useLoaderData } from "react-router-dom";
 import { AuthContext } from "../../providers/AuthProvider";
 import { Card } from "antd";
@@ -6,21 +6,23 @@ import jsPDF from "jspdf";
 import Swal from "sweetalert2";
 
 const ShowCoupon = () => {
-  const { user } = useContext(AuthContext);
-  console.log(user);
+  const { user, setLoading } = useContext(AuthContext);
+  // console.log(user);
 
-  const loaderData = useLoaderData(); // Fetch data using loader function
-  console.log("Show Coupon", loaderData);
+  const loaderData = useLoaderData();
+
+  // console.log("Show Coupon", loaderData);
 
   const filteredCoupons = loaderData.filter(
     (coupon) => coupon.email === user?.email
   );
 
-  const _id = filteredCoupons.map((coupon) => coupon._id);
-  console.log(_id);
+  const totalAmount = filteredCoupons.reduce((sum, coupon) => {
+    return sum + (parseFloat(coupon.amount) || 0); // Assuming 'amount' is the field for price/amount of the coupon
+  }, 0);
 
-  const handleDeleteCoupon = (_id) => {
-    console.log(_id);
+  const handleDeleteCoupon = (id) => {
+    console.log("id", id);
 
     Swal.fire({
       title: "Are you sure?",
@@ -32,12 +34,12 @@ const ShowCoupon = () => {
       confirmButtonText: "Yes, delete it!",
     }).then((result) => {
       if (result.isConfirmed) {
-        fetch(`http://localhost:5000/coupon/${_id}`, {
+        fetch(`https://canteen-system-server-373v7q163.vercel.app/coupon/${id}`, {
           method: "DELETE",
         })
           .then((res) => res.json())
           .then((data) => {
-            console.log('data',data);
+            console.log("data", data);
 
             if (data.deletedCount > 0) {
               Swal.fire({
@@ -53,6 +55,32 @@ const ShowCoupon = () => {
       }
     });
   };
+
+  const [click, setClick] = useState(false);
+
+  const handleClick = () => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: `Payment ${totalAmount}`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "YES",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setClick(true);
+        Swal.fire({
+          position: "top-center",
+          icon: "success",
+          title: "Payment Successfull",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+      }
+    });
+  };
+  console.log(click);
 
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
@@ -95,11 +123,9 @@ const ShowCoupon = () => {
     >
       <div className="hero-overlay bg-opacity-40"></div>
       <div className="hero-content text-neutral-content text-center">
-        <div className="w-full max-w-md">
-
-          { filteredCoupons.length > 0 ? (
-
-            <div className="card shrink-0 w-full sm:w-96 md:ml-60 -mt-40">
+        <div className="w-full max-w-md ">
+          {filteredCoupons.length > 0 ? (
+            <div className="card shrink-0 w-full sm:w-96">
               <Card
                 className="bg-transparent md:w-[550px]"
                 title={
@@ -110,7 +136,7 @@ const ShowCoupon = () => {
                 bordered={false}
               >
                 <div className="w-[250px] md:w-[500px]">
-                  <ul>
+                  <ul className="">
                     {filteredCoupons.map((coupon) => (
                       <li key={coupon._id}>
                         <div className="card-body border-2 border-red-800 rounded-lg mb-4">
@@ -132,26 +158,41 @@ const ShowCoupon = () => {
                             <span className="text-yellow-700">Date:</span>{" "}
                             {coupon.date}
                           </h2>
+                          <div className="flex -mb-4 justify-end">
+                            <button
+                              className="btn btn-secondary px-8 md:text-xl"
+                              onClick={() => handleDeleteCoupon(coupon._id)}
+                            >
+                              <Link>Delete</Link>
+                            </button>
+                          </div>
                         </div>
                       </li>
                     ))}
                   </ul>
-                  <div className="flex justify-end">
-                    <button
-                      className="btn btn-secondary px-8 md:text-xl"
-                      onClick={() => handleDeleteCoupon(_id)}
-                    >
-                      <Link>Delete</Link>
-                    </button>
-                  </div>
-                  <div className="flex mt-4">
-                    <button
-                      className="btn btn-warning px-8 md:text-xl md:mr-14 w-full"
-                      onClick={handleDownloadPDF}
-                    >
-                      Bkash Payment & Download
-                    </button>
-                  </div>
+
+                  {click ? (
+                    <div className="flex mt-4">
+                      <button
+                        className="btn btn-warning px-8 md:text-xl md:mr-14 w-full"
+                        onClick={handleDownloadPDF}
+                      >
+                        Download Your Coupon
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex mt-4">
+                      <button
+                        className="btn btn-warning px-8 md:text-xl md:mr-14 w-full"
+                        onClick={handleClick}
+                      >
+                        Bkash Payment
+                        <span className="text-red-600 font-extrabold">
+                          ({totalAmount})
+                        </span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </Card>
             </div>

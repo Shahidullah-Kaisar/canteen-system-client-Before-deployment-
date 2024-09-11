@@ -61,7 +61,7 @@ const Navbar = () => {
           >
             <div className="rounded-full">
               <img
-                alt="Tailwind CSS Navbar component"
+                alt=""
                 src={user.photoURL}
               />
             </div>
@@ -72,6 +72,9 @@ const Navbar = () => {
           <NavLink to="/register" onClick={closeMenu}>Register</NavLink>
         </li>
       )}
+      <li className="mr-8 text-2xl">
+        <NavLink to="/admin">Admin</NavLink>
+      </li>
     </>
   );
 

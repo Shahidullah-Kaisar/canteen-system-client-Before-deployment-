@@ -15,52 +15,35 @@ const Coupon = () => {
     const name = e.target.name.value;
     const email = e.target.email.value;
     const select = e.target.select.value;
+    const amount = e.target.amount.value;
     const date = e.target.date.value;
 
-    const couponData = { name, email, select, date };
+    const couponData = { name, email, amount, select, date };
     console.log(couponData);
 
-    // Check if the user has already bought a coupon
-    fetch(`http://localhost:5000/coupon?email=${email}`)
+    fetch("https://canteen-system-server-373v7q163.vercel.app/coupon", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(couponData),
+    })
       .then((res) => res.json())
-      .then((existingCoupons) => {
-        console.log(existingCoupons);
+      .then((data) => {
+        console.log(data);
 
-        const emailExists = existingCoupons.some(
-          (coupon) => coupon.email === email
-        );
-
-        if (emailExists) {
+        if (data.insertedId) {
           Swal.fire({
-            title: "Oops!",
-            text: "You have already bought a coupon. Please delete the coupon first",
-            icon: "warning",
+            title: "Successful!",
+            text: "Your Coupon is Ready.",
+            icon: "success",
           });
-        } else {
-          fetch("http://localhost:5000/coupon", {
-            method: "POST",
-            headers: {
-              "content-type": "application/json",
-            },
-            body: JSON.stringify(couponData),
-          })
-            .then((res) => res.json())
-            .then((data) => {
-              console.log(data);
 
-              if (data.insertedId) {
-                Swal.fire({
-                  title: "Successful!",
-                  text: "Your Coupon is Ready.",
-                  icon: "success",
-                });
-
-                navigate("/showcoupon");
-              }
-            });
+          navigate("/showcoupon");
         }
       });
   };
+
 
   return (
     <>
@@ -96,6 +79,10 @@ const Coupon = () => {
               <option>Night (30 taka)</option>
             </select>
 
+            <label className="input input-bordered flex items-center gap-2 mb-3 text-xl">
+              Amount:
+              <input type="text" name="amount" className="grow text-lg" />
+            </label>
             <label className="input input-bordered flex items-center gap-2 text-xl">
               Date:
               <input type="date" name="date" className="grow text-xl" />
