@@ -13,6 +13,7 @@ const AuthProvider = ({children}) => {
 
     const createRegisterUser = async (email, password) => {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await signOut(auth);
         return userCredential;
     };
 
@@ -21,7 +22,7 @@ const AuthProvider = ({children}) => {
         setUser(userCredential.user);
         return userCredential;
     };
-
+``
     const signInGoogle = () =>{
         return signInWithPopup(auth, googleProvider)
     }
