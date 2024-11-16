@@ -29,7 +29,7 @@ const AuthProvider = ({children}) => {
     useEffect(() =>{
         const unSubscrirbe = onAuthStateChanged(auth, (currentUser) =>{
           console.log('saved data until sighnout',currentUser)
-          setUser(currentUser);
+        //   setUser(currentUser);
           setLoading(false);
         });
         return ()=> unSubscrirbe();
